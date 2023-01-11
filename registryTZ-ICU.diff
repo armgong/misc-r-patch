@@ -1,16 +1,3 @@
-Index: src/extra/blas/Makefile.win
-===================================================================
---- src/extra/blas/Makefile.win	(revision 83591)
-+++ src/extra/blas/Makefile.win	(working copy)
-@@ -12,7 +12,7 @@
- ../../../$(BINDIR)/Rblas.dll: blas00.o ../../gnuwin32/dllversion.o
- 	@$(ECHO) -------- Building $@ --------
- 	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def \
--	   -L../../../$(IMPDIR) -lR  -L"$(ATLAS_PATH)" -lf77blas -latlas
-+	   -L../../../$(IMPDIR) -lR -fopenmp -lopenblas 
- else
- ../../../$(BINDIR)/Rblas.dll: blas.o blas2.o cmplxblas.o cmplxblas2.o ../../gnuwin32/dllversion.o
- 	@$(ECHO) -------- Building $@ --------
 Index: src/extra/tzone/registryTZ.c
 ===================================================================
 --- src/extra/tzone/registryTZ.c	(revision 83591)
