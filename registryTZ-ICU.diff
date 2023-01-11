@@ -1,6 +1,6 @@
 Index: src/extra/tzone/registryTZ.c
 ===================================================================
---- src/extra/tzone/registryTZ.c	(revision 83591)
+--- src/extra/tzone/registryTZ.c	(revision 83596)
 +++ src/extra/tzone/registryTZ.c	(working copy)
 @@ -18,7 +18,12 @@
   */
@@ -16,7 +16,7 @@ Index: src/extra/tzone/registryTZ.c
  /*
    From http://unicode.org/cldr/data/diff/supplemental/windows_tzid.html
    Added some entries from the XP Registry (and checked on Vista).
-@@ -394,9 +399,63 @@
+@@ -394,9 +399,69 @@
  /* Longest currently is 31 chars */
  static char StandardName[64], DaylightName[64], Olson[64] = "";
  
@@ -38,18 +38,12 @@ Index: src/extra/tzone/registryTZ.c
 +            regdata, &size);
 +        RegCloseKey(hkey);
 +        if (rc_tzname == ERROR_SUCCESS) {  
-+            wchar_t buffer[64];
-+            UErrorCode status = U_ZERO_ERROR;
-+            //convert tzname without geo
-+            
-+            int32_t result = ucal_getTimeZoneIDForWindowsID(
-+                (wchar_t*)regdata, -1, NULL, buffer, ARRAYSIZE(buffer), &status);
-+
-+            //try convert tzname with geo
++            wchar_t buffer_geo[64];
++            //try convert tzname with region
 +            if (RegOpenKeyEx(HKEY_CURRENT_USER, geokey, 0, KEY_QUERY_VALUE, &hkey_geo)
 +                == ERROR_SUCCESS) {
 +                size_geo = 64;
-+                rc_geo = RegQueryValueExW(hkey, L"Name", NULL, &type,
++                rc_geo = RegQueryValueExW(hkey_geo, L"Name", NULL, &type,
 +                    regdata_geo, &size_geo);
 +                RegCloseKey(hkey_geo);                              
 +                
@@ -58,11 +52,23 @@ Index: src/extra/tzone/registryTZ.c
 +                    wcstombs(region, (wchar_t*)regdata_geo, 64);
 +                    region[63] = '\0';
 +
++                    UErrorCode status_geo = U_ZERO_ERROR;
 +                    int32_t result = ucal_getTimeZoneIDForWindowsID(
-+                        (wchar_t*)regdata, -1, region, buffer, ARRAYSIZE(buffer), &status);
++                        (wchar_t*)regdata, -1, region, buffer_geo, ARRAYSIZE(buffer_geo), &status_geo);
++
++                    if (U_SUCCESS(status_geo)) {
++                        wcstombs(Olson, buffer_geo, 64);
++                        Olson[63] = '\0';
++                        return Olson;
++                    }
 +                }
 +            }
-+            //return result w/o geo
++            
++            //convert tzname without region
++            wchar_t buffer[64];
++            UErrorCode status = U_ZERO_ERROR;
++            int32_t result = ucal_getTimeZoneIDForWindowsID(
++                (wchar_t*)regdata, -1, NULL, buffer, ARRAYSIZE(buffer), &status);
 +            if (U_SUCCESS(status)) {
 +                wcstombs(Olson, buffer, 64);
 +                Olson[63] = '\0';
@@ -80,7 +86,7 @@ Index: src/extra/tzone/registryTZ.c
      if(!Olson[0]) {
  	const char *p = getenv("TZ");
  	if(p) {
-@@ -415,4 +474,7 @@
+@@ -415,4 +480,7 @@
  #endif
      }
      return Olson;
