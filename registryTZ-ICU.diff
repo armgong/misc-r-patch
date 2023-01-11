@@ -1,0 +1,103 @@
+Index: src/extra/blas/Makefile.win
+===================================================================
+--- src/extra/blas/Makefile.win	(revision 83591)
++++ src/extra/blas/Makefile.win	(working copy)
+@@ -12,7 +12,7 @@
+ ../../../$(BINDIR)/Rblas.dll: blas00.o ../../gnuwin32/dllversion.o
+ 	@$(ECHO) -------- Building $@ --------
+ 	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def \
+-	   -L../../../$(IMPDIR) -lR  -L"$(ATLAS_PATH)" -lf77blas -latlas
++	   -L../../../$(IMPDIR) -lR -fopenmp -lopenblas 
+ else
+ ../../../$(BINDIR)/Rblas.dll: blas.o blas2.o cmplxblas.o cmplxblas2.o ../../gnuwin32/dllversion.o
+ 	@$(ECHO) -------- Building $@ --------
+Index: src/extra/tzone/registryTZ.c
+===================================================================
+--- src/extra/tzone/registryTZ.c	(revision 83591)
++++ src/extra/tzone/registryTZ.c	(working copy)
+@@ -18,7 +18,12 @@
+  */
+ 
+ #include <string.h>
+-
++#define USE_ICU
++#ifdef USE_ICU
++ #include <windows.h>
++ #define UCHAR_TYPE wchar_t
++ #include <unicode/ucal.h>
++#endif
+ /*
+   From http://unicode.org/cldr/data/diff/supplemental/windows_tzid.html
+   Added some entries from the XP Registry (and checked on Vista).
+@@ -394,9 +399,63 @@
+ /* Longest currently is 31 chars */
+ static char StandardName[64], DaylightName[64], Olson[64] = "";
+ 
++//ICU need english name to convert,read registry time zone key name
++//furthermore ICU function also have parameter about region ,this also can read from registry
++static char geokey[] ="Control Panel\\International\\Geo";
++const char* convertWindowsIdToIanaId()
++{
++    LONG rc_tzname,rc_geo;
++    HKEY hkey,hkey_geo;
++    DWORD type, size,size_geo;
++    BYTE regdata[1000]; 
++    BYTE regdata_geo[64];
++
++    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, tzikey, 0, KEY_QUERY_VALUE, &hkey)
++        == ERROR_SUCCESS) {
++        size = 1000;
++        rc_tzname = RegQueryValueExW(hkey, L"TimeZoneKeyName", NULL, &type,
++            regdata, &size);
++        RegCloseKey(hkey);
++        if (rc_tzname == ERROR_SUCCESS) {  
++            wchar_t buffer[64];
++            UErrorCode status = U_ZERO_ERROR;
++            //convert tzname without geo
++            
++            int32_t result = ucal_getTimeZoneIDForWindowsID(
++                (wchar_t*)regdata, -1, NULL, buffer, ARRAYSIZE(buffer), &status);
++
++            //try convert tzname with geo
++            if (RegOpenKeyEx(HKEY_CURRENT_USER, geokey, 0, KEY_QUERY_VALUE, &hkey_geo)
++                == ERROR_SUCCESS) {
++                size_geo = 64;
++                rc_geo = RegQueryValueExW(hkey, L"Name", NULL, &type,
++                    regdata_geo, &size_geo);
++                RegCloseKey(hkey_geo);                              
++                
++                if (rc_geo == ERROR_SUCCESS) {
++                    char region[64];
++                    wcstombs(region, (wchar_t*)regdata_geo, 64);
++                    region[63] = '\0';
++
++                    int32_t result = ucal_getTimeZoneIDForWindowsID(
++                        (wchar_t*)regdata, -1, region, buffer, ARRAYSIZE(buffer), &status);
++                }
++            }
++            //return result w/o geo
++            if (U_SUCCESS(status)) {
++                wcstombs(Olson, buffer, 64);
++                Olson[63] = '\0';
++                return Olson;
++            }
++        }       
++    }   
++    return "unknown";    
++}
++
+ /* Uwe Ligges says these entries are localized in the Windows' base language */
+ const char *getTZinfo(void)
+ {
++#ifndef  USE_ICU
+     if(!Olson[0]) {
+ 	const char *p = getenv("TZ");
+ 	if(p) {
+@@ -415,4 +474,7 @@
+ #endif
+     }
+     return Olson;
++#else        
++    return convertWindowsIdToIanaId();
++#endif
+ }
