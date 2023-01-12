@@ -2,7 +2,7 @@ Index: src/extra/tzone/registryTZ.c
 ===================================================================
 --- src/extra/tzone/registryTZ.c	(revision 83598)
 +++ src/extra/tzone/registryTZ.c	(working copy)
-@@ -18,401 +18,93 @@
+@@ -18,401 +18,95 @@
   */
  
  #include <string.h>
@@ -319,16 +319,18 @@ Index: src/extra/tzone/registryTZ.c
  
 -/* Since the registry entries can be localized and we might not be
 -   running in the native charset, use Unicode here. */
++static wchar_t basekey[] = L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\";
++static char tzikey[] = "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation";
++static char geokey[] = "Control Panel\\International\\Geo";
++/* Longest currently is 31 chars */
++static char Olson[64] = "";
  
 -static wchar_t basekey[] = 
 -  L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\";
 -static char tzikey[] = 
 -   "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation";
-+/* Longest currently is 31 chars */
-+static char Olson[64] = "";
  
 -static const char *reg2Olson(const wchar_t *s)
-+
 +/* use ucal_getDefaultTimeZone to get IANA default time zone name */
 +const char *getTZinfo(void)
  {
@@ -339,7 +341,7 @@ Index: src/extra/tzone/registryTZ.c
 -    BYTE regdata[1000]; /* 64 was not enough on Vista */
 +    UChar defaultzone[64];
 +    UErrorCode status_default = U_ZERO_ERROR;
-+    int32_t i = ucal_getDefaultTimeZone(defaultzone, ARRAYSIZE(defaultzone), &status_default);
++    int32_t result_default  = ucal_getDefaultTimeZone(defaultzone, ARRAYSIZE(defaultzone), &status_default);
 +    if (U_SUCCESS(status_default)) {
 +        wcstombs(Olson, defaultzone, 64);
 +        Olson[63] = '\0';
@@ -422,7 +424,7 @@ Index: src/extra/tzone/registryTZ.c
 +                    region[63] = '\0';
  
 +                    UErrorCode status_geo = U_ZERO_ERROR;
-+                    int32_t result = ucal_getTimeZoneIDForWindowsID(
++                    int32_t result_geo = ucal_getTimeZoneIDForWindowsID(
 +                        (wchar_t*)regdata, -1, region, buffer_geo, ARRAYSIZE(buffer_geo), &status_geo);
  
 -static TIME_ZONE_INFORMATION tzi;
