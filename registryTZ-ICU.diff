@@ -16,7 +16,7 @@ Index: src/extra/tzone/registryTZ.c
  /*
    From http://unicode.org/cldr/data/diff/supplemental/windows_tzid.html
    Added some entries from the XP Registry (and checked on Vista).
-@@ -394,9 +399,69 @@
+@@ -394,9 +399,81 @@
  /* Longest currently is 31 chars */
  static char StandardName[64], DaylightName[64], Olson[64] = "";
  
@@ -25,10 +25,22 @@ Index: src/extra/tzone/registryTZ.c
 +static char geokey[] ="Control Panel\\International\\Geo";
 +const char* convertWindowsIdToIanaId()
 +{
-+    LONG rc_tzname,rc_geo;
-+    HKEY hkey,hkey_geo;
-+    DWORD type, size,size_geo;
-+    BYTE regdata[1000]; 
++    //use ucal_getDefaultTimeZone first , this function will return IANA time zone name 
++    //if failed then try use registry information to convert
++    UChar defaultzone[64];
++    UErrorCode status_default = U_ZERO_ERROR;
++    int32_t i = ucal_getDefaultTimeZone(defaultzone, ARRAYSIZE(defaultzone), &status_default);
++    if (U_SUCCESS(status_default)) {
++        wcstombs(Olson, defaultzone, 64);
++        Olson[63] = '\0';        
++        return Olson;
++    }
++
++    //unable get default time zone (IANA format), use registry information to convert 
++    LONG rc_tzname, rc_geo;
++    HKEY hkey, hkey_geo;
++    DWORD type, size, size_geo;
++    BYTE regdata[1000];
 +    BYTE regdata_geo[64];
 +
 +    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, tzikey, 0, KEY_QUERY_VALUE, &hkey)
@@ -86,7 +98,7 @@ Index: src/extra/tzone/registryTZ.c
      if(!Olson[0]) {
  	const char *p = getenv("TZ");
  	if(p) {
-@@ -415,4 +480,7 @@
+@@ -415,4 +492,7 @@
  #endif
      }
      return Olson;
