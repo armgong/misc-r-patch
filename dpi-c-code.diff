@@ -1,0 +1,214 @@
+Index: src/extra/graphapp/buttons.c
+===================================================================
+--- src/extra/graphapp/buttons.c	(revision 83645)
++++ src/extra/graphapp/buttons.c	(working copy)
+@@ -58,6 +58,30 @@
+ #define hasfocus(obj) ((obj)->state & GA_Focus)
+ #define setfocus(obj) SetFocus((obj)->handle)
+ 
++rect rscalingdown(rect r)
++{
++    //GetDpiForWindow();
++    rect r1;
++    int SysDPI = GetDpiForSystem();
++
++    r1.x = (r.x*96) / (SysDPI);
++    r1.y = (r.y * 96) / (SysDPI);
++    r1.height = (r.height * 96) / (SysDPI);
++    r1.width = (r.width * 96) / (SysDPI);
++    return r1;
++}
++rect rscalingup(rect r)
++{
++    //GetDpiForWindow();
++    rect r1;
++    int SysDPI = GetDpiForSystem();
++    
++    r1.x = (r.x * SysDPI) /96;
++    r1.y = (r.y * SysDPI) /96;
++    r1.height = (r.height * SysDPI) /96;
++    r1.width = (r.width * SysDPI )/96;
++    return r1;
++}
+ /*
+  *  Ensure there is a current window, create one if there isn't.
+  *  If a window is created, it is also shown on the screen.
+@@ -135,7 +159,10 @@
+     HWND hwnd;
+     object obj;
+ 
+-    ensure_window();
++    ensure_window();       
++
++    r = rscalingup(r);
++
+     r = rcanon(r);
+ 
+     if(localeCP > 0 && (localeCP != GetACP())) {
+Index: src/extra/graphapp/graphapp.h
+===================================================================
+--- src/extra/graphapp/graphapp.h	(revision 83645)
++++ src/extra/graphapp/graphapp.h	(working copy)
+@@ -500,6 +500,7 @@
+ #define ptinr		GA_ptinr
+ #define raddpt		GA_raddpt
+ #define rcanon		GA_rcanon
++
+ #define rcenter		GA_rcenter
+ #define rdiv		GA_rdiv
+ #define redraw		GA_redraw
+@@ -690,6 +691,7 @@
+ 
+ point	newpoint(int x, int y);
+ rect	newrect(int left, int top, int width, int height);
++
+ rect	rpt(point min, point max);
+ 
+ #define pt(x,y)         newpoint((x),(y))
+@@ -721,6 +723,9 @@
+ rect	clipr(rect r1, rect r2);
+ rect	rcanon(rect r);
+ 
++rect rscalingdown(rect r);
++rect rscalingup(rect r);
++
+ /*
+  *  Colour functions and constants.
+  */
+Index: src/extra/graphapp/windows.c
+===================================================================
+--- src/extra/graphapp/windows.c	(revision 83645)
++++ src/extra/graphapp/windows.c	(working copy)
+@@ -229,6 +229,7 @@
+     mdi.szClass	= mdi_class_name;
+     mdi.szTitle	= name;
+     mdi.hOwner	= this_instance;
++
+     mdi.x		= r.x;
+     mdi.y		= r.y;
+     mdi.cx		= r.width;
+@@ -436,7 +437,12 @@
+ 	flags &= ~Menubar;
+     if (flags & Workspace && r.width != 0) MDIsizeSet = 1;
+     fix_win_style(&flags, &state, &win_style);
++
++	r = rscalingup(r);
++
+     r = fix_win_rect(r, flags);
++
++
+     ex_style = 0L; /* extended style */
+     if (flags & Floating)
+ 	ex_style |= WS_EX_TOPMOST;
+Index: src/gnuwin32/console.c
+===================================================================
+--- src/gnuwin32/console.c	(revision 83645)
++++ src/gnuwin32/console.c	(working copy)
+@@ -2262,7 +2262,7 @@
+ 	   right away in consolereads, a correct caret will be set up
+ 	   and destroyed/restored when loosing/gaining focus. */
+ 	flags |= SetUpCaret;
+-    c = (console) newwindow(name, rect(consolex, consoley, WIDTH, HEIGHT),
++    c = (console) newwindow(name, rscalingdown(rect(consolex, consoley, WIDTH, HEIGHT)),
+ 			    flags | TrackMouse | VScrollbar | HScrollbar);
+     HEIGHT = getheight(c);
+     WIDTH  = getwidth(c);
+Index: src/gnuwin32/front-ends/RGui32.manifest
+===================================================================
+--- src/gnuwin32/front-ends/RGui32.manifest	(revision 83645)
++++ src/gnuwin32/front-ends/RGui32.manifest	(working copy)
+@@ -9,6 +9,8 @@
+ <application>
+   <windowsSettings>
+     <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
++    <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
++    <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+   </windowsSettings>
+ </application>
+ <description>RGui console</description>
+Index: src/gnuwin32/front-ends/RGui64.manifest
+===================================================================
+--- src/gnuwin32/front-ends/RGui64.manifest	(revision 83645)
++++ src/gnuwin32/front-ends/RGui64.manifest	(working copy)
+@@ -9,6 +9,8 @@
+ <application>
+   <windowsSettings>
+     <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
++   <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
++   <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+   </windowsSettings>
+ </application>
+ <description>RGui console</description>
+Index: src/gnuwin32/preferences.c
+===================================================================
+--- src/gnuwin32/preferences.c	(revision 83645)
++++ src/gnuwin32/preferences.c	(working copy)
+@@ -799,7 +799,6 @@
+ static void showDialog(Gui gui)
+ {
+     char buf[100];
+-
+     wconfig = newwindow(G_("Rgui Configuration Editor"), rect(0, 0, 550, 450),
+ 			Titlebar | Centered | Modal);
+     setbackground(wconfig, dialog_bg());
+Index: src/library/grDevices/src/devWindows.c
+===================================================================
+--- src/library/grDevices/src/devWindows.c	(revision 83645)
++++ src/library/grDevices/src/devWindows.c	(working copy)
+@@ -1573,7 +1573,7 @@
+ 	if (grx < 0) grx = cw - iw + grx;
+ 	if (gry < 0) gry = ch - ih + gry;
+ 	if (!(xd->gawin = newwindow("R Graphics",
+-				    rect(grx, gry, iw, ih),
++		rscalingdown(rect(grx, gry, iw, ih)),
+ 				    Document | StandardWindow | Menubar |
+ 				    VScrollbar | HScrollbar | CanvasSize)
+ 		)) {
+Index: src/library/utils/src/windows/widgets.c
+===================================================================
+--- src/library/utils/src/windows/widgets.c	(revision 83645)
++++ src/library/utils/src/windows/widgets.c	(working copy)
+@@ -63,6 +63,7 @@
+ rect getSysFontSize(void); /* in graphapp/fonts.c */
+ RECT *RgetMDIsize(void); /* in rui.c */
+ 
++
+ SEXP Win_selectlist(SEXP args)
+ {
+     SEXP choices, preselect, ans = R_NilValue;
+@@ -99,17 +100,21 @@
+     } else {
+ 	h0 = deviceheight(NULL);
+     }
++
+     ymax = min(80+fht*n, h0-100); /* allow for window widgets, toolbar */
+     ylist = ymax - 60;
++
++
++
+     wselect = newwindow(haveTitle ? translateChar(STRING_ELT(CADDDR(args), 0)):
+ 			(multiple ? _("Select one or more") : _("Select one")),
+-			rect(0, 0, xmax, ymax),
++        rscalingdown(rect(0, 0, xmax,ymax)),
+ 			Titlebar | Centered | Modal | Floating);
+     setbackground(wselect, dialog_bg());
+     if(multiple)
+-	f_list = newmultilist(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
++	f_list = newmultilist(clist, rscalingdown(rect(10, 10, xmax - 25, ylist)), NULL, finish);
+     else
+-	f_list = newlistbox(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
++	f_list = newlistbox(clist, rscalingdown(rect(10, 10, xmax - 25, ylist)), NULL, finish);
+     if(!isNull(preselect) && LENGTH(preselect)) {
+ 	for(i = 0; i < n; i++)
+ 	    for(j = 0; j < LENGTH(preselect); j++)
+@@ -118,8 +123,8 @@
+ 		    break;
+ 		}
+     }
+-    bFinish = newbutton(G_("OK"), rect(xmax-160, ymax-40, 70, 25), finish);
+-    bCancel = newbutton(G_("Cancel"), rect(xmax-80, ymax-40, 70, 25), cancel);
++    bFinish = newbutton(G_("OK"), rscalingdown(rect(xmax - 160, ymax - 40, 70, 25)), finish);
++    bCancel = newbutton(G_("Cancel"), rscalingdown(rect(xmax - 80, ymax - 40, 70, 25)), cancel);
+     setkeydown(wselect, key1);
+     show(wselect);
+     done = 0;
