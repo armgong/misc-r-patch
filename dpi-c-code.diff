@@ -45,6 +45,19 @@ Index: src/extra/graphapp/buttons.c
      r = rcanon(r);
  
      if(localeCP > 0 && (localeCP != GetACP())) {
+Index: pager.c
+===================================================================
+--- pager.c     (revision 83646)
++++ pager.c     (working copy)
+@@ -400,7 +400,7 @@
+        x += (rand % w0) - w0/2;
+        y += ((rand/w0) % h0) - h0/2;
+     }
+-    c = (pager) newwindow("PAGER", rect(x, y, w, h),
++    c = (pager) newwindow("PAGER", rscalingdown(rect(x, y, w, h)),
+                          Document | StandardWindow | Menubar |
+                          VScrollbar | HScrollbar | TrackMouse);
+     if (!c) {    
 Index: src/extra/graphapp/graphapp.h
 ===================================================================
 --- src/extra/graphapp/graphapp.h	(revision 83645)
