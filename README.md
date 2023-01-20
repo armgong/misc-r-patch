@@ -3,5 +3,4 @@ some r related patch I am working on. update time to time, Currently include
 
 1 Windows to IANA timezone convertion
 
-2 RGui HighDPI on Windows , Modify graphapp and related r codes , only implement SystemDPI .  
-still finding a way to implement PerMoniterDPI (use WM_DPICHANGE?).
+2 RGui HighDPI on Windows, Modify graphapp and related r codes,   SystemDPI awareness implemented. Test on RGui and RTerm both seems ok on windows,dialogs and plotting.  PerMonitorDPI awareness will implement use WM_DPICHANGE in future.
