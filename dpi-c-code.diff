@@ -1,8 +1,8 @@
-Index: src/extra/graphapp/buttons.c
+Index: extra/graphapp/buttons.c
 ===================================================================
---- src/extra/graphapp/buttons.c	(revision 83645)
-+++ src/extra/graphapp/buttons.c	(working copy)
-@@ -58,6 +58,30 @@
+--- extra/graphapp/buttons.c	(revision 83646)
++++ extra/graphapp/buttons.c	(working copy)
+@@ -58,6 +58,31 @@
  #define hasfocus(obj) ((obj)->state & GA_Focus)
  #define setfocus(obj) SetFocus((obj)->handle)
  
@@ -12,7 +12,7 @@ Index: src/extra/graphapp/buttons.c
 +    rect r1;
 +    int SysDPI = GetDpiForSystem();
 +
-+    r1.x = (r.x*96) / (SysDPI);
++    r1.x = (r.x * 96) / (SysDPI);
 +    r1.y = (r.y * 96) / (SysDPI);
 +    r1.height = (r.height * 96) / (SysDPI);
 +    r1.width = (r.width * 96) / (SysDPI);
@@ -23,58 +23,21 @@ Index: src/extra/graphapp/buttons.c
 +    //GetDpiForWindow();
 +    rect r1;
 +    int SysDPI = GetDpiForSystem();
-+    
-+    r1.x = (r.x * SysDPI) /96;
-+    r1.y = (r.y * SysDPI) /96;
-+    r1.height = (r.height * SysDPI) /96;
-+    r1.width = (r.width * SysDPI )/96;
++
++    r1.x = (r.x * SysDPI) / 96;
++    r1.y = (r.y * SysDPI) / 96;
++    r1.height = (r.height * SysDPI) / 96;
++    r1.width = (r.width * SysDPI) / 96;
 +    return r1;
 +}
++
  /*
   *  Ensure there is a current window, create one if there isn't.
   *  If a window is created, it is also shown on the screen.
-@@ -135,7 +159,10 @@
-     HWND hwnd;
-     object obj;
- 
--    ensure_window();
-+    ensure_window();       
-+
-+    r = rscalingup(r);
-+
-     r = rcanon(r);
- 
-     if(localeCP > 0 && (localeCP != GetACP())) {
-Index: editor.c
+Index: extra/graphapp/graphapp.h
 ===================================================================
---- editor.c    (revision 83646)
-+++ editor.c    (working copy)
-@@ -676,7 +676,7 @@
- #ifdef USE_MDI
-     if (ismdi()) flags |= Document;
- #endif
--    c = (editor) newwindow("", rect(x, y, w, h), flags);
-+    c = (editor) newwindow("", rscalingdown(rect(x, y, w, h)), flags);
-     t = newrichtextarea(NULL, rect(0, 0, w, h));
-     setdata(c, t);
-     setdata(t, p);
-Index: pager.c
-===================================================================
---- pager.c     (revision 83646)
-+++ pager.c     (working copy)
-@@ -400,7 +400,7 @@
-        x += (rand % w0) - w0/2;
-        y += ((rand/w0) % h0) - h0/2;
-     }
--    c = (pager) newwindow("PAGER", rect(x, y, w, h),
-+    c = (pager) newwindow("PAGER", rscalingdown(rect(x, y, w, h)),
-                          Document | StandardWindow | Menubar |
-                          VScrollbar | HScrollbar | TrackMouse);
-     if (!c) {    
-Index: src/extra/graphapp/graphapp.h
-===================================================================
---- src/extra/graphapp/graphapp.h	(revision 83645)
-+++ src/extra/graphapp/graphapp.h	(working copy)
+--- extra/graphapp/graphapp.h	(revision 83646)
++++ extra/graphapp/graphapp.h	(working copy)
 @@ -500,6 +500,7 @@
  #define ptinr		GA_ptinr
  #define raddpt		GA_raddpt
@@ -101,48 +64,10 @@ Index: src/extra/graphapp/graphapp.h
  /*
   *  Colour functions and constants.
   */
-Index: src/extra/graphapp/windows.c
+Index: gnuwin32/front-ends/RGui32.manifest
 ===================================================================
---- src/extra/graphapp/windows.c	(revision 83645)
-+++ src/extra/graphapp/windows.c	(working copy)
-@@ -229,6 +229,7 @@
-     mdi.szClass	= mdi_class_name;
-     mdi.szTitle	= name;
-     mdi.hOwner	= this_instance;
-+
-     mdi.x		= r.x;
-     mdi.y		= r.y;
-     mdi.cx		= r.width;
-@@ -436,7 +437,12 @@
- 	flags &= ~Menubar;
-     if (flags & Workspace && r.width != 0) MDIsizeSet = 1;
-     fix_win_style(&flags, &state, &win_style);
-+
-+	r = rscalingup(r);
-+
-     r = fix_win_rect(r, flags);
-+
-+
-     ex_style = 0L; /* extended style */
-     if (flags & Floating)
- 	ex_style |= WS_EX_TOPMOST;
-Index: src/gnuwin32/console.c
-===================================================================
---- src/gnuwin32/console.c	(revision 83645)
-+++ src/gnuwin32/console.c	(working copy)
-@@ -2262,7 +2262,7 @@
- 	   right away in consolereads, a correct caret will be set up
- 	   and destroyed/restored when loosing/gaining focus. */
- 	flags |= SetUpCaret;
--    c = (console) newwindow(name, rect(consolex, consoley, WIDTH, HEIGHT),
-+    c = (console) newwindow(name, rscalingdown(rect(consolex, consoley, WIDTH, HEIGHT)),
- 			    flags | TrackMouse | VScrollbar | HScrollbar);
-     HEIGHT = getheight(c);
-     WIDTH  = getwidth(c);
-Index: src/gnuwin32/front-ends/RGui32.manifest
-===================================================================
---- src/gnuwin32/front-ends/RGui32.manifest	(revision 83645)
-+++ src/gnuwin32/front-ends/RGui32.manifest	(working copy)
+--- gnuwin32/front-ends/RGui32.manifest	(revision 83646)
++++ gnuwin32/front-ends/RGui32.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
    <windowsSettings>
@@ -152,10 +77,10 @@ Index: src/gnuwin32/front-ends/RGui32.manifest
    </windowsSettings>
  </application>
  <description>RGui console</description>
-Index: src/gnuwin32/front-ends/RGui64.manifest
+Index: gnuwin32/front-ends/RGui64.manifest
 ===================================================================
---- src/gnuwin32/front-ends/RGui64.manifest	(revision 83645)
-+++ src/gnuwin32/front-ends/RGui64.manifest	(working copy)
+--- gnuwin32/front-ends/RGui64.manifest	(revision 83646)
++++ gnuwin32/front-ends/RGui64.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
    <windowsSettings>
@@ -165,76 +90,182 @@ Index: src/gnuwin32/front-ends/RGui64.manifest
    </windowsSettings>
  </application>
  <description>RGui console</description>
-Index: src/gnuwin32/preferences.c
+Index: gnuwin32/preferences.c
 ===================================================================
---- src/gnuwin32/preferences.c	(revision 83645)
-+++ src/gnuwin32/preferences.c	(working copy)
-@@ -799,7 +799,6 @@
+--- gnuwin32/preferences.c	(revision 83646)
++++ gnuwin32/preferences.c	(working copy)
+@@ -799,19 +799,18 @@
  static void showDialog(Gui gui)
  {
      char buf[100];
 -
-     wconfig = newwindow(G_("Rgui Configuration Editor"), rect(0, 0, 550, 450),
+-    wconfig = newwindow(G_("Rgui Configuration Editor"), rect(0, 0, 550, 450),
++    wconfig = newwindow(G_("Rgui Configuration Editor"), rscalingup(rect(0, 0, 550, 450)),
  			Titlebar | Centered | Modal);
      setbackground(wconfig, dialog_bg());
-Index: src/library/grDevices/src/devWindows.c
-===================================================================
---- src/library/grDevices/src/devWindows.c	(revision 83645)
-+++ src/library/grDevices/src/devWindows.c	(working copy)
-@@ -1573,7 +1573,7 @@
- 	if (grx < 0) grx = cw - iw + grx;
- 	if (gry < 0) gry = ch - ih + gry;
- 	if (!(xd->gawin = newwindow("R Graphics",
--				    rect(grx, gry, iw, ih),
-+		rscalingdown(rect(grx, gry, iw, ih)),
- 				    Document | StandardWindow | Menubar |
- 				    VScrollbar | HScrollbar | CanvasSize)
- 		)) {
-Index: src/library/utils/src/windows/widgets.c
-===================================================================
---- src/library/utils/src/windows/widgets.c	(revision 83645)
-+++ src/library/utils/src/windows/widgets.c	(working copy)
-@@ -63,6 +63,7 @@
- rect getSysFontSize(void); /* in graphapp/fonts.c */
- RECT *RgetMDIsize(void); /* in rui.c */
+     l_mdi = newlabel("Single or multiple windows",
+-		     rect(10, 10, 140, 20), AlignLeft);
+-    rb_mdi = newradiobutton("MDI", rect(150, 10 , 70, 20), cMDI);
+-    rb_sdi = newradiobutton("SDI", rect(220, 10 , 70, 20), cSDI);
++		     rscalingup(rect(10, 10, 140, 20)), AlignLeft);
++    rb_mdi = newradiobutton("MDI", rscalingup(rect(150, 10 , 70, 20)), cMDI);
++    rb_sdi = newradiobutton("SDI", rscalingup(rect(220, 10 , 70, 20)), cSDI);
  
-+
- SEXP Win_selectlist(SEXP args)
- {
-     SEXP choices, preselect, ans = R_NilValue;
-@@ -99,17 +100,21 @@
-     } else {
- 	h0 = deviceheight(NULL);
+ 
+-    toolbar = newcheckbox("MDI toolbar", rect(300, 10, 100, 20), NULL);
++    toolbar = newcheckbox("MDI toolbar", rscalingup(rect(300, 10, 100, 20)), NULL);
+     if(gui->toolbar) check(toolbar);
+-    statusbar = newcheckbox("MDI statusbar", rect(420, 10, 130, 20), NULL);
++    statusbar = newcheckbox("MDI statusbar", rscalingup(rect(420, 10, 130, 20)), NULL);
+     if(gui->statusbar) check(statusbar);
+     if(gui->MDI) {
+ 	check(rb_mdi); cMDI(rb_mdi);
+@@ -819,92 +818,92 @@
+ 	check(rb_sdi); cSDI(rb_sdi);
      }
-+
-     ymax = min(80+fht*n, h0-100); /* allow for window widgets, toolbar */
-     ylist = ymax - 60;
-+
-+
-+
-     wselect = newwindow(haveTitle ? translateChar(STRING_ELT(CADDDR(args), 0)):
- 			(multiple ? _("Select one or more") : _("Select one")),
--			rect(0, 0, xmax, ymax),
-+        rscalingdown(rect(0, 0, xmax,ymax)),
- 			Titlebar | Centered | Modal | Floating);
-     setbackground(wselect, dialog_bg());
-     if(multiple)
--	f_list = newmultilist(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
-+	f_list = newmultilist(clist, rscalingdown(rect(10, 10, xmax - 25, ylist)), NULL, finish);
-     else
--	f_list = newlistbox(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
-+	f_list = newlistbox(clist, rscalingdown(rect(10, 10, xmax - 25, ylist)), NULL, finish);
-     if(!isNull(preselect) && LENGTH(preselect)) {
- 	for(i = 0; i < n; i++)
- 	    for(j = 0; j < LENGTH(preselect); j++)
-@@ -118,8 +123,8 @@
- 		    break;
- 		}
-     }
--    bFinish = newbutton(G_("OK"), rect(xmax-160, ymax-40, 70, 25), finish);
--    bCancel = newbutton(G_("Cancel"), rect(xmax-80, ymax-40, 70, 25), cancel);
-+    bFinish = newbutton(G_("OK"), rscalingdown(rect(xmax - 160, ymax - 40, 70, 25)), finish);
-+    bCancel = newbutton(G_("Cancel"), rscalingdown(rect(xmax - 80, ymax - 40, 70, 25)), cancel);
-     setkeydown(wselect, key1);
-     show(wselect);
-     done = 0;
+ 
+-    l_mwin = newlabel("Pager style", rect(10, 40, 90, 20), AlignLeft);
++    l_mwin = newlabel("Pager style", rscalingup(rect(10, 40, 90, 20)), AlignLeft);
+     g_mwin = newradiogroup();
+-    rb_mwin = newradiobutton("multiple windows", rect(150, 40, 150, 20), NULL);
+-    rb_swin = newradiobutton("single window", rect(150, 60 , 150, 20), NULL);
++    rb_mwin = newradiobutton("multiple windows", rscalingup(rect(150, 40, 150, 20)), NULL);
++    rb_swin = newradiobutton("single window", rscalingup(rect(150, 60 , 150, 20)), NULL);
+     if(gui->pagerMultiple) check(rb_mwin); else check(rb_swin);
+ 
+     l_lang = newlabel("Language for menus\nand messages",
+-		      rect(320, 40, 130, 40), AlignLeft);
+-    f_lang = newfield(gui->language, rect(450, 45, 60, 20));
++		      rscalingup(rect(320, 40, 130, 40)), AlignLeft);
++    f_lang = newfield(gui->language, rscalingup(rect(450, 45, 60, 20)));
+ 
+ /* Font, pointsize, style */
+ 
+-    l_font = newlabel("Font", rect(10, 100, 40, 20), AlignLeft);
++    l_font = newlabel("Font", rscalingup(rect(10, 100, 40, 20)), AlignLeft);
+ 
+-    f_font = newdropfield(FontsList, rect(50, 100, 120, 20), scrollFont);
+-    tt_font = newcheckbox("TrueType only", rect(180, 100, 110, 20), changeFont);
++    f_font = newdropfield(FontsList, rscalingup(rect(50, 100, 120, 20)), scrollFont);
++    tt_font = newcheckbox("TrueType only", rscalingup(rect(180, 100, 110, 20)), changeFont);
+     if (gui->tt_font) check(tt_font);
+     settext(f_font, gui->font);
+ 
+-    l_point = newlabel("size", rect(310, 100, 30, 20), AlignLeft);
+-    d_point = newdropfield(PointsList, rect(345, 100, 50, 20), scrollPoints);
++    l_point = newlabel("size", rscalingup(rect(310, 100, 30, 20)), AlignLeft);
++    d_point = newdropfield(PointsList, rscalingup(rect(345, 100, 50, 20)), scrollPoints);
+     snprintf(buf, 100, "%d", gui->pointsize);
+     settext(d_point, buf);
+-    l_style = newlabel("style", rect(410, 100, 40, 20), AlignLeft);
+-    f_style = newdroplist(StyleList, rect(450, 100, 80, 20), scrollStyle);
++    l_style = newlabel("style", rscalingup(rect(410, 100, 40, 20)), AlignLeft);
++    f_style = newdroplist(StyleList, rscalingup(rect(450, 100, 80, 20)), scrollStyle);
+     setlistitem(f_style, cmatch(gui->style, StyleList));
+ 
+ /* Console size, set widthonresize */
+-    l_crows = newlabel("Console   rows", rect(10, 150, 100, 20), AlignLeft);
++    l_crows = newlabel("Console   rows", rscalingup(rect(10, 150, 100, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->crows);
+-    f_crows = newfield(buf, rect(110, 150, 30, 20));
+-    l_ccols = newlabel("columns", rect(150, 150, 60, 20), AlignLeft);
++    f_crows = newfield(buf, rscalingup(rect(110, 150, 30, 20)));
++    l_ccols = newlabel("columns", rscalingup(rect(150, 150, 60, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->ccols);
+-    f_ccols = newfield(buf, rect(220, 150, 30, 20));
+-    l_cx = newlabel("Initial left", rect(270, 150, 70, 20), AlignLeft);
++    f_ccols = newfield(buf, rscalingup(rect(220, 150, 30, 20)));
++    l_cx = newlabel("Initial left", rscalingup(rect(270, 150, 70, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->cx);
+-    f_cx = newfield(buf, rect(350, 150, 40, 20));
+-    l_cy = newlabel("top", rect(430, 150, 30, 20), AlignLeft);
++    f_cx = newfield(buf, rscalingup(rect(350, 150, 40, 20)));
++    l_cy = newlabel("top", rscalingup(rect(430, 150, 30, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->cy);
+-    f_cy = newfield(buf, rect(480, 150, 40, 20));
++    f_cy = newfield(buf, rscalingup(rect(480, 150, 40, 20)));
+ 
+     c_resize = newcheckbox("set options(width) on resize?",
+-			   rect(20, 175, 200, 20), NULL);
++			   rscalingup(rect(20, 175, 200, 20)), NULL);
+     if(gui->setWidthOnResize) check(c_resize);
+ 
+-    l_cbb = newlabel("buffer chars", rect(270, 175, 70, 20), AlignLeft);
++    l_cbb = newlabel("buffer chars", rscalingup(rect(270, 175, 70, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->cbb);
+-    f_cbb = newfield(buf, rect(350, 175, 60, 20));
+-    l_cbl = newlabel("lines", rect(430, 175, 50, 20), AlignLeft);
++    f_cbb = newfield(buf, rscalingup(rect(350, 175, 60, 20)));
++    l_cbl = newlabel("lines", rscalingup(rect(430, 175, 50, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->cbl);
+-    f_cbl = newfield(buf, rect(480, 175, 40, 20));
++    f_cbl = newfield(buf, rscalingup(rect(480, 175, 40, 20)));
+ 
+     c_buff = newcheckbox("buffer console by default?",
+-			 rect(20, 190, 200, 20), NULL);
++			 rscalingup(rect(20, 190, 200, 20)), NULL);
+     if(gui->buffered) check(c_buff);
+ 
+ /* Cursor blink */
+ 
+-    l_blink = newlabel("Cursor blink", rect(270, 200,100, 30), AlignLeft);
+-    f_blink = newdroplist(BlinkList, rect(350, 200, 80, 20), NULL);
++    l_blink = newlabel("Cursor blink", rscalingup(rect(270, 200,100, 30)), AlignLeft);
++    f_blink = newdroplist(BlinkList, rscalingup(rect(350, 200, 80, 20)), NULL);
+     setlistitem(f_blink, gui->cursor_blink);
+     
+ /* Pager size */
+-    l_prows = newlabel("Pager   rows", rect(10, 230, 100, 20), AlignLeft);
++    l_prows = newlabel("Pager   rows", rscalingup(rect(10, 230, 100, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->prows);
+-    f_prows = newfield(buf, rect(110, 230, 30, 20));
+-    l_pcols = newlabel("columns", rect(150, 230, 60, 20), AlignLeft);
++    f_prows = newfield(buf, rscalingup(rect(110, 230, 30, 20)));
++    l_pcols = newlabel("columns", rscalingup(rect(150, 230, 60, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->pcols);
+-    f_pcols = newfield(buf, rect(220, 230, 30, 20));
++    f_pcols = newfield(buf, rscalingup(rect(220, 230, 30, 20)));
+ 
+ /* Graphics window */
+     l_grx = newlabel("Graphics windows: initial left",
+-		     rect(10, 270, 190, 20), AlignLeft);
++		     rscalingup(rect(10, 270, 190, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->grx);
+-    f_grx = newfield(buf, rect(200, 270, 40, 20));
+-    l_gry = newlabel("top", rect(270, 270, 30, 20), AlignLeft);
++    f_grx = newfield(buf, rscalingup(rect(200, 270, 40, 20)));
++    l_gry = newlabel("top", rscalingup(rect(270, 270, 30, 20)), AlignLeft);
+     snprintf(buf, 100, "%d", gui->gry);
+-    f_gry = newfield(buf, rect(300, 270, 40, 20));
++    f_gry = newfield(buf, rscalingup(rect(300, 270, 40, 20)));
+ 
+ /* Font colours */
+     l_cols = newlabel("Console and Pager Colours",
+-		      rect(10, 310, 520, 20), AlignCenter);
++		      rscalingup(rect(10, 310, 520, 20)), AlignCenter);
+ 			      
+-    guielement = newlistbox(GuiElementNames, rect(50, 330, 100, 80), changeElement, NULL);
+-    guicolor = newlistbox(ColorName, rect(205, 330, 100, 80), clickColor, NULL);
+-    guisample = newrichtextarea("Sample text", rect(350, 330, 150, 55));
++    guielement = newlistbox(GuiElementNames, rscalingup(rect(50, 330, 100, 80)), changeElement, NULL);
++    guicolor = newlistbox(ColorName, rscalingup(rect(205, 330, 100, 80)), clickColor, NULL);
++    guisample = newrichtextarea("Sample text", rscalingup(rect(350, 330, 150, 55)));
+ 	
+     for (int i=0; i<numGuiColors; i++)
+     	dialogColors[i] = gui->guiColors[i];
+@@ -915,11 +914,11 @@
+     samplePointsize = atoi(gettext(d_point));
+     scrollStyle(f_style, 0); /* the 0 is ignored */
+ 
+-    bApply = newbutton("Apply", rect(50, 410, 70, 25), apply);
+-    bSave = newbutton("Save...", rect(130, 410, 70, 25), save);
+-    bLoad = newbutton("Load...", rect(210, 410, 70, 25), load);
+-    bOK = newbutton("OK", rect(350, 410, 70, 25), ok);
+-    bCancel = newbutton("Cancel", rect(430, 410, 70, 25), cancel);
++    bApply = newbutton("Apply", rscalingup(rect(50, 410, 70, 25)), apply);
++    bSave = newbutton("Save...", rscalingup(rect(130, 410, 70, 25)), save);
++    bLoad = newbutton("Load...", rscalingup(rect(210, 410, 70, 25)), load);
++    bOK = newbutton("OK", rscalingup(rect(350, 410, 70, 25)), ok);
++    bCancel = newbutton("Cancel", rscalingup(rect(430, 410, 70, 25)), cancel);
+     show(wconfig);
+ }
