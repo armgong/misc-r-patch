@@ -45,6 +45,19 @@ Index: src/extra/graphapp/buttons.c
      r = rcanon(r);
  
      if(localeCP > 0 && (localeCP != GetACP())) {
+Index: editor.c
+===================================================================
+--- editor.c    (revision 83646)
++++ editor.c    (working copy)
+@@ -676,7 +676,7 @@
+ #ifdef USE_MDI
+     if (ismdi()) flags |= Document;
+ #endif
+-    c = (editor) newwindow("", rect(x, y, w, h), flags);
++    c = (editor) newwindow("", rscalingdown(rect(x, y, w, h)), flags);
+     t = newrichtextarea(NULL, rect(0, 0, w, h));
+     setdata(c, t);
+     setdata(t, p);
 Index: pager.c
 ===================================================================
 --- pager.c     (revision 83646)
