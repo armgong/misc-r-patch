@@ -1,43 +1,38 @@
-Index: extra/graphapp/buttons.c
+Index: src/extra/graphapp/buttons.c
 ===================================================================
---- extra/graphapp/buttons.c	(revision 83646)
-+++ extra/graphapp/buttons.c	(working copy)
-@@ -58,6 +58,31 @@
+--- src/extra/graphapp/buttons.c	(revision 83653)
++++ src/extra/graphapp/buttons.c	(working copy)
+@@ -58,6 +58,26 @@
  #define hasfocus(obj) ((obj)->state & GA_Focus)
  #define setfocus(obj) SetFocus((obj)->handle)
  
-+rect rscalingdown(rect r)
++rect rectScalingforDPI(rect r)
 +{
 +    //GetDpiForWindow();
 +    rect r1;
 +    int SysDPI = GetDpiForSystem();
-+
-+    r1.x = (r.x * 96) / (SysDPI);
-+    r1.y = (r.y * 96) / (SysDPI);
-+    r1.height = (r.height * 96) / (SysDPI);
-+    r1.width = (r.width * 96) / (SysDPI);
++    r1.x = MulDiv(r.x , SysDPI, 96);
++    r1.y = MulDiv(r.y, SysDPI, 96);
++    r1.height = MulDiv(r.height, SysDPI, 96);
++    r1.width = MulDiv(r.width, SysDPI, 96);
 +    return r1;
 +}
-+rect rscalingup(rect r)
-+{
-+    //GetDpiForWindow();
-+    rect r1;
-+    int SysDPI = GetDpiForSystem();
 +
-+    r1.x = (r.x * SysDPI) / 96;
-+    r1.y = (r.y * SysDPI) / 96;
-+    r1.height = (r.height * SysDPI) / 96;
-+    r1.width = (r.width * SysDPI) / 96;
++int DPIScaling(int OneDim)
++{    
++    int r1;
++    int SysDPI = GetDpiForSystem();
++    r1 = MulDiv(OneDim, SysDPI, 96);
 +    return r1;
 +}
 +
  /*
   *  Ensure there is a current window, create one if there isn't.
   *  If a window is created, it is also shown on the screen.
-Index: extra/graphapp/graphapp.h
+Index: src/extra/graphapp/graphapp.h
 ===================================================================
---- extra/graphapp/graphapp.h	(revision 83646)
-+++ extra/graphapp/graphapp.h	(working copy)
+--- src/extra/graphapp/graphapp.h	(revision 83653)
++++ src/extra/graphapp/graphapp.h	(working copy)
 @@ -500,6 +500,7 @@
  #define ptinr		GA_ptinr
  #define raddpt		GA_raddpt
@@ -58,16 +53,16 @@ Index: extra/graphapp/graphapp.h
  rect	clipr(rect r1, rect r2);
  rect	rcanon(rect r);
  
-+rect rscalingdown(rect r);
-+rect rscalingup(rect r);
++rect rectScalingforDPI(rect r);
++int  DPIScaling(int OneDim);
 +
  /*
   *  Colour functions and constants.
   */
-Index: gnuwin32/front-ends/RGui32.manifest
+Index: src/gnuwin32/front-ends/RGui32.manifest
 ===================================================================
---- gnuwin32/front-ends/RGui32.manifest	(revision 83646)
-+++ gnuwin32/front-ends/RGui32.manifest	(working copy)
+--- src/gnuwin32/front-ends/RGui32.manifest	(revision 83653)
++++ src/gnuwin32/front-ends/RGui32.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
    <windowsSettings>
@@ -77,10 +72,10 @@ Index: gnuwin32/front-ends/RGui32.manifest
    </windowsSettings>
  </application>
  <description>RGui console</description>
-Index: gnuwin32/front-ends/RGui64.manifest
+Index: src/gnuwin32/front-ends/RGui64.manifest
 ===================================================================
---- gnuwin32/front-ends/RGui64.manifest	(revision 83646)
-+++ gnuwin32/front-ends/RGui64.manifest	(working copy)
+--- src/gnuwin32/front-ends/RGui64.manifest	(revision 83653)
++++ src/gnuwin32/front-ends/RGui64.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
    <windowsSettings>
@@ -90,33 +85,34 @@ Index: gnuwin32/front-ends/RGui64.manifest
    </windowsSettings>
  </application>
  <description>RGui console</description>
-Index: gnuwin32/preferences.c
+Index: src/gnuwin32/preferences.c
 ===================================================================
---- gnuwin32/preferences.c	(revision 83646)
-+++ gnuwin32/preferences.c	(working copy)
+--- src/gnuwin32/preferences.c	(revision 83653)
++++ src/gnuwin32/preferences.c	(working copy)
 @@ -799,19 +799,18 @@
  static void showDialog(Gui gui)
  {
      char buf[100];
 -
 -    wconfig = newwindow(G_("Rgui Configuration Editor"), rect(0, 0, 550, 450),
-+    wconfig = newwindow(G_("Rgui Configuration Editor"), rscalingup(rect(0, 0, 550, 450)),
- 			Titlebar | Centered | Modal);
+-			Titlebar | Centered | Modal);
++    wconfig = newwindow(G_("Rgui Configuration Editor"), rectScalingforDPI(rect(0, 0, 550, 450)),
++			Titlebar | Centered | Modal| Closebox);
      setbackground(wconfig, dialog_bg());
      l_mdi = newlabel("Single or multiple windows",
 -		     rect(10, 10, 140, 20), AlignLeft);
 -    rb_mdi = newradiobutton("MDI", rect(150, 10 , 70, 20), cMDI);
 -    rb_sdi = newradiobutton("SDI", rect(220, 10 , 70, 20), cSDI);
-+		     rscalingup(rect(10, 10, 140, 20)), AlignLeft);
-+    rb_mdi = newradiobutton("MDI", rscalingup(rect(150, 10 , 70, 20)), cMDI);
-+    rb_sdi = newradiobutton("SDI", rscalingup(rect(220, 10 , 70, 20)), cSDI);
++		     rectScalingforDPI(rect(10, 10, 140, 20)), AlignLeft);
++    rb_mdi = newradiobutton("MDI", rectScalingforDPI(rect(150, 10 , 70, 20)), cMDI);
++    rb_sdi = newradiobutton("SDI", rectScalingforDPI(rect(220, 10 , 70, 20)), cSDI);
  
  
 -    toolbar = newcheckbox("MDI toolbar", rect(300, 10, 100, 20), NULL);
-+    toolbar = newcheckbox("MDI toolbar", rscalingup(rect(300, 10, 100, 20)), NULL);
++    toolbar = newcheckbox("MDI toolbar", rectScalingforDPI(rect(300, 10, 100, 20)), NULL);
      if(gui->toolbar) check(toolbar);
 -    statusbar = newcheckbox("MDI statusbar", rect(420, 10, 130, 20), NULL);
-+    statusbar = newcheckbox("MDI statusbar", rscalingup(rect(420, 10, 130, 20)), NULL);
++    statusbar = newcheckbox("MDI statusbar", rectScalingforDPI(rect(420, 10, 130, 20)), NULL);
      if(gui->statusbar) check(statusbar);
      if(gui->MDI) {
  	check(rb_mdi); cMDI(rb_mdi);
@@ -125,131 +121,131 @@ Index: gnuwin32/preferences.c
      }
  
 -    l_mwin = newlabel("Pager style", rect(10, 40, 90, 20), AlignLeft);
-+    l_mwin = newlabel("Pager style", rscalingup(rect(10, 40, 90, 20)), AlignLeft);
++    l_mwin = newlabel("Pager style", rectScalingforDPI(rect(10, 40, 90, 20)), AlignLeft);
      g_mwin = newradiogroup();
 -    rb_mwin = newradiobutton("multiple windows", rect(150, 40, 150, 20), NULL);
 -    rb_swin = newradiobutton("single window", rect(150, 60 , 150, 20), NULL);
-+    rb_mwin = newradiobutton("multiple windows", rscalingup(rect(150, 40, 150, 20)), NULL);
-+    rb_swin = newradiobutton("single window", rscalingup(rect(150, 60 , 150, 20)), NULL);
++    rb_mwin = newradiobutton("multiple windows", rectScalingforDPI(rect(150, 40, 150, 20)), NULL);
++    rb_swin = newradiobutton("single window", rectScalingforDPI(rect(150, 60 , 150, 20)), NULL);
      if(gui->pagerMultiple) check(rb_mwin); else check(rb_swin);
  
      l_lang = newlabel("Language for menus\nand messages",
 -		      rect(320, 40, 130, 40), AlignLeft);
 -    f_lang = newfield(gui->language, rect(450, 45, 60, 20));
-+		      rscalingup(rect(320, 40, 130, 40)), AlignLeft);
-+    f_lang = newfield(gui->language, rscalingup(rect(450, 45, 60, 20)));
++		      rectScalingforDPI(rect(320, 40, 130, 40)), AlignLeft);
++    f_lang = newfield(gui->language, rectScalingforDPI(rect(450, 45, 60, 20)));
  
  /* Font, pointsize, style */
  
 -    l_font = newlabel("Font", rect(10, 100, 40, 20), AlignLeft);
-+    l_font = newlabel("Font", rscalingup(rect(10, 100, 40, 20)), AlignLeft);
++    l_font = newlabel("Font", rectScalingforDPI(rect(10, 100, 40, 20)), AlignLeft);
  
 -    f_font = newdropfield(FontsList, rect(50, 100, 120, 20), scrollFont);
 -    tt_font = newcheckbox("TrueType only", rect(180, 100, 110, 20), changeFont);
-+    f_font = newdropfield(FontsList, rscalingup(rect(50, 100, 120, 20)), scrollFont);
-+    tt_font = newcheckbox("TrueType only", rscalingup(rect(180, 100, 110, 20)), changeFont);
++    f_font = newdropfield(FontsList, rectScalingforDPI(rect(50, 100, 120, 20)), scrollFont);
++    tt_font = newcheckbox("TrueType only", rectScalingforDPI(rect(180, 100, 110, 20)), changeFont);
      if (gui->tt_font) check(tt_font);
      settext(f_font, gui->font);
  
 -    l_point = newlabel("size", rect(310, 100, 30, 20), AlignLeft);
 -    d_point = newdropfield(PointsList, rect(345, 100, 50, 20), scrollPoints);
-+    l_point = newlabel("size", rscalingup(rect(310, 100, 30, 20)), AlignLeft);
-+    d_point = newdropfield(PointsList, rscalingup(rect(345, 100, 50, 20)), scrollPoints);
++    l_point = newlabel("size", rectScalingforDPI(rect(310, 100, 30, 20)), AlignLeft);
++    d_point = newdropfield(PointsList, rectScalingforDPI(rect(345, 100, 50, 20)), scrollPoints);
      snprintf(buf, 100, "%d", gui->pointsize);
      settext(d_point, buf);
 -    l_style = newlabel("style", rect(410, 100, 40, 20), AlignLeft);
 -    f_style = newdroplist(StyleList, rect(450, 100, 80, 20), scrollStyle);
-+    l_style = newlabel("style", rscalingup(rect(410, 100, 40, 20)), AlignLeft);
-+    f_style = newdroplist(StyleList, rscalingup(rect(450, 100, 80, 20)), scrollStyle);
++    l_style = newlabel("style", rectScalingforDPI(rect(410, 100, 40, 20)), AlignLeft);
++    f_style = newdroplist(StyleList, rectScalingforDPI(rect(450, 100, 80, 20)), scrollStyle);
      setlistitem(f_style, cmatch(gui->style, StyleList));
  
  /* Console size, set widthonresize */
 -    l_crows = newlabel("Console   rows", rect(10, 150, 100, 20), AlignLeft);
-+    l_crows = newlabel("Console   rows", rscalingup(rect(10, 150, 100, 20)), AlignLeft);
++    l_crows = newlabel("Console   rows", rectScalingforDPI(rect(10, 150, 100, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->crows);
 -    f_crows = newfield(buf, rect(110, 150, 30, 20));
 -    l_ccols = newlabel("columns", rect(150, 150, 60, 20), AlignLeft);
-+    f_crows = newfield(buf, rscalingup(rect(110, 150, 30, 20)));
-+    l_ccols = newlabel("columns", rscalingup(rect(150, 150, 60, 20)), AlignLeft);
++    f_crows = newfield(buf, rectScalingforDPI(rect(110, 150, 30, 20)));
++    l_ccols = newlabel("columns", rectScalingforDPI(rect(150, 150, 60, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->ccols);
 -    f_ccols = newfield(buf, rect(220, 150, 30, 20));
 -    l_cx = newlabel("Initial left", rect(270, 150, 70, 20), AlignLeft);
-+    f_ccols = newfield(buf, rscalingup(rect(220, 150, 30, 20)));
-+    l_cx = newlabel("Initial left", rscalingup(rect(270, 150, 70, 20)), AlignLeft);
++    f_ccols = newfield(buf, rectScalingforDPI(rect(220, 150, 30, 20)));
++    l_cx = newlabel("Initial left", rectScalingforDPI(rect(270, 150, 70, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->cx);
 -    f_cx = newfield(buf, rect(350, 150, 40, 20));
 -    l_cy = newlabel("top", rect(430, 150, 30, 20), AlignLeft);
-+    f_cx = newfield(buf, rscalingup(rect(350, 150, 40, 20)));
-+    l_cy = newlabel("top", rscalingup(rect(430, 150, 30, 20)), AlignLeft);
++    f_cx = newfield(buf, rectScalingforDPI(rect(350, 150, 40, 20)));
++    l_cy = newlabel("top", rectScalingforDPI(rect(430, 150, 30, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->cy);
 -    f_cy = newfield(buf, rect(480, 150, 40, 20));
-+    f_cy = newfield(buf, rscalingup(rect(480, 150, 40, 20)));
++    f_cy = newfield(buf, rectScalingforDPI(rect(480, 150, 40, 20)));
  
      c_resize = newcheckbox("set options(width) on resize?",
 -			   rect(20, 175, 200, 20), NULL);
-+			   rscalingup(rect(20, 175, 200, 20)), NULL);
++			   rectScalingforDPI(rect(20, 175, 200, 20)), NULL);
      if(gui->setWidthOnResize) check(c_resize);
  
 -    l_cbb = newlabel("buffer chars", rect(270, 175, 70, 20), AlignLeft);
-+    l_cbb = newlabel("buffer chars", rscalingup(rect(270, 175, 70, 20)), AlignLeft);
++    l_cbb = newlabel("buffer chars", rectScalingforDPI(rect(270, 175, 70, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->cbb);
 -    f_cbb = newfield(buf, rect(350, 175, 60, 20));
 -    l_cbl = newlabel("lines", rect(430, 175, 50, 20), AlignLeft);
-+    f_cbb = newfield(buf, rscalingup(rect(350, 175, 60, 20)));
-+    l_cbl = newlabel("lines", rscalingup(rect(430, 175, 50, 20)), AlignLeft);
++    f_cbb = newfield(buf, rectScalingforDPI(rect(350, 175, 60, 20)));
++    l_cbl = newlabel("lines", rectScalingforDPI(rect(430, 175, 50, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->cbl);
 -    f_cbl = newfield(buf, rect(480, 175, 40, 20));
-+    f_cbl = newfield(buf, rscalingup(rect(480, 175, 40, 20)));
++    f_cbl = newfield(buf, rectScalingforDPI(rect(480, 175, 40, 20)));
  
      c_buff = newcheckbox("buffer console by default?",
 -			 rect(20, 190, 200, 20), NULL);
-+			 rscalingup(rect(20, 190, 200, 20)), NULL);
++			 rectScalingforDPI(rect(20, 190, 200, 20)), NULL);
      if(gui->buffered) check(c_buff);
  
  /* Cursor blink */
  
 -    l_blink = newlabel("Cursor blink", rect(270, 200,100, 30), AlignLeft);
 -    f_blink = newdroplist(BlinkList, rect(350, 200, 80, 20), NULL);
-+    l_blink = newlabel("Cursor blink", rscalingup(rect(270, 200,100, 30)), AlignLeft);
-+    f_blink = newdroplist(BlinkList, rscalingup(rect(350, 200, 80, 20)), NULL);
++    l_blink = newlabel("Cursor blink", rectScalingforDPI(rect(270, 200,100, 30)), AlignLeft);
++    f_blink = newdroplist(BlinkList, rectScalingforDPI(rect(350, 200, 80, 20)), NULL);
      setlistitem(f_blink, gui->cursor_blink);
      
  /* Pager size */
 -    l_prows = newlabel("Pager   rows", rect(10, 230, 100, 20), AlignLeft);
-+    l_prows = newlabel("Pager   rows", rscalingup(rect(10, 230, 100, 20)), AlignLeft);
++    l_prows = newlabel("Pager   rows", rectScalingforDPI(rect(10, 230, 100, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->prows);
 -    f_prows = newfield(buf, rect(110, 230, 30, 20));
 -    l_pcols = newlabel("columns", rect(150, 230, 60, 20), AlignLeft);
-+    f_prows = newfield(buf, rscalingup(rect(110, 230, 30, 20)));
-+    l_pcols = newlabel("columns", rscalingup(rect(150, 230, 60, 20)), AlignLeft);
++    f_prows = newfield(buf, rectScalingforDPI(rect(110, 230, 30, 20)));
++    l_pcols = newlabel("columns", rectScalingforDPI(rect(150, 230, 60, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->pcols);
 -    f_pcols = newfield(buf, rect(220, 230, 30, 20));
-+    f_pcols = newfield(buf, rscalingup(rect(220, 230, 30, 20)));
++    f_pcols = newfield(buf, rectScalingforDPI(rect(220, 230, 30, 20)));
  
  /* Graphics window */
      l_grx = newlabel("Graphics windows: initial left",
 -		     rect(10, 270, 190, 20), AlignLeft);
-+		     rscalingup(rect(10, 270, 190, 20)), AlignLeft);
++		     rectScalingforDPI(rect(10, 270, 190, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->grx);
 -    f_grx = newfield(buf, rect(200, 270, 40, 20));
 -    l_gry = newlabel("top", rect(270, 270, 30, 20), AlignLeft);
-+    f_grx = newfield(buf, rscalingup(rect(200, 270, 40, 20)));
-+    l_gry = newlabel("top", rscalingup(rect(270, 270, 30, 20)), AlignLeft);
++    f_grx = newfield(buf, rectScalingforDPI(rect(200, 270, 40, 20)));
++    l_gry = newlabel("top", rectScalingforDPI(rect(270, 270, 30, 20)), AlignLeft);
      snprintf(buf, 100, "%d", gui->gry);
 -    f_gry = newfield(buf, rect(300, 270, 40, 20));
-+    f_gry = newfield(buf, rscalingup(rect(300, 270, 40, 20)));
++    f_gry = newfield(buf, rectScalingforDPI(rect(300, 270, 40, 20)));
  
  /* Font colours */
      l_cols = newlabel("Console and Pager Colours",
 -		      rect(10, 310, 520, 20), AlignCenter);
-+		      rscalingup(rect(10, 310, 520, 20)), AlignCenter);
++		      rectScalingforDPI(rect(10, 310, 520, 20)), AlignCenter);
  			      
 -    guielement = newlistbox(GuiElementNames, rect(50, 330, 100, 80), changeElement, NULL);
 -    guicolor = newlistbox(ColorName, rect(205, 330, 100, 80), clickColor, NULL);
 -    guisample = newrichtextarea("Sample text", rect(350, 330, 150, 55));
-+    guielement = newlistbox(GuiElementNames, rscalingup(rect(50, 330, 100, 80)), changeElement, NULL);
-+    guicolor = newlistbox(ColorName, rscalingup(rect(205, 330, 100, 80)), clickColor, NULL);
-+    guisample = newrichtextarea("Sample text", rscalingup(rect(350, 330, 150, 55)));
++    guielement = newlistbox(GuiElementNames, rectScalingforDPI(rect(50, 330, 100, 80)), changeElement, NULL);
++    guicolor = newlistbox(ColorName, rectScalingforDPI(rect(205, 330, 100, 80)), clickColor, NULL);
++    guisample = newrichtextarea("Sample text", rectScalingforDPI(rect(350, 330, 150, 55)));
  	
      for (int i=0; i<numGuiColors; i++)
      	dialogColors[i] = gui->guiColors[i];
@@ -262,10 +258,183 @@ Index: gnuwin32/preferences.c
 -    bLoad = newbutton("Load...", rect(210, 410, 70, 25), load);
 -    bOK = newbutton("OK", rect(350, 410, 70, 25), ok);
 -    bCancel = newbutton("Cancel", rect(430, 410, 70, 25), cancel);
-+    bApply = newbutton("Apply", rscalingup(rect(50, 410, 70, 25)), apply);
-+    bSave = newbutton("Save...", rscalingup(rect(130, 410, 70, 25)), save);
-+    bLoad = newbutton("Load...", rscalingup(rect(210, 410, 70, 25)), load);
-+    bOK = newbutton("OK", rscalingup(rect(350, 410, 70, 25)), ok);
-+    bCancel = newbutton("Cancel", rscalingup(rect(430, 410, 70, 25)), cancel);
++    bApply = newbutton("Apply", rectScalingforDPI(rect(50, 410, 70, 25)), apply);
++    bSave = newbutton("Save...", rectScalingforDPI(rect(130, 410, 70, 25)), save);
++    bLoad = newbutton("Load...", rectScalingforDPI(rect(210, 410, 70, 25)), load);
++    bOK = newbutton("OK", rectScalingforDPI(rect(350, 410, 70, 25)), ok);
++    bCancel = newbutton("Cancel", rectScalingforDPI(rect(430, 410, 70, 25)), cancel);
      show(wconfig);
  }
+ 
+Index: src/library/utils/src/windows/dataentry.c
+===================================================================
+--- src/library/utils/src/windows/dataentry.c	(revision 83653)
++++ src/library/utils/src/windows/dataentry.c	(working copy)
+@@ -1519,15 +1519,15 @@
+     popupcol = DE->colmin + col - 1;
+     blah = get_col_name(DE, popupcol);
+     wconf = newwindow(G_("Variable editor"),
+-		      rect(x_pos + r.x-150, y_pos + r.y-50, 300, 100),
++		      rectScalingforDPI(rect(x_pos + r.x-150, y_pos + r.y-50, 300, 100)),
+ 		      Titlebar | Closebox | Modal);
+     setclose(wconf, popupclose);
+     setbackground(wconf, bbg);
+-    lwhat = newlabel(G_("variable name"), rect(10, 22, 90, 20), AlignLeft);
+-    varname = newfield(blah, rect(100, 20, 120, 20));
+-    lrb = newlabel(G_("type"), rect(50, 62, 50, 20), AlignLeft);
+-    rb_num = newradiobutton("numeric", rect(100, 60 , 80, 20), NULL);
+-    rb_char = newradiobutton("character", rect(180, 60 , 80, 20), NULL);
++    lwhat = newlabel(G_("variable name"), rectScalingforDPI(rect(10, 22, 90, 20)), AlignLeft);
++    varname = newfield(blah, rectScalingforDPI(rect(100, 20, 120, 20)));
++    lrb = newlabel(G_("type"), rectScalingforDPI(rect(50, 62, 50, 20)), AlignLeft);
++    rb_num = newradiobutton("numeric", rectScalingforDPI(rect(100, 60 , 80, 20)), NULL);
++    rb_char = newradiobutton("character", rectScalingforDPI(rect(180, 60 , 80, 20)), NULL);
+     isnumeric = (get_col_type(DE, popupcol) == NUMERIC);
+     if (isnumeric) check(rb_num); else check(rb_char);
+     setkeydown(wconf, nm_hit_key);
+@@ -1640,15 +1640,15 @@
+     char blah[25];
+ 
+     devw = newwindow(G_("Cell width(s)"),
+-		     rect(0, 0, 250, 60),
++		     rectScalingforDPI(rect(0, 0, 250, 60)),
+ 		     Titlebar | Centered | Closebox | Modal);
+     setdata(devw, DE);
+     setclose(devw, vw_close);
+     setbackground(devw, bbg);
+-    lwhat = newlabel(G_("Cell width"), rect(10, 20, 70, 20), AlignLeft);
++    lwhat = newlabel(G_("Cell width"), rectScalingforDPI(rect(10, 20, 70, 20)), AlignLeft);
+     snprintf(blah, 25, "%d", DE->nboxchars);
+-    varname = newfield(blah, rect(80, 20, 40, 20));
+-    varwidths = newcheckbox(G_("variable"), rect(150, 20, 80, 20), vw_callback);
++    varname = newfield(blah, rectScalingforDPI(rect(80, 20, 40, 20)));
++    varwidths = newcheckbox(G_("variable"), rectScalingforDPI(rect(150, 20, 80, 20)), vw_callback);
+     if (DE->nboxchars == 0) {
+ 	check(varwidths);
+ 	disable(varname);
+@@ -1752,6 +1752,8 @@
+ 	RECT *pR = RgetMDIsize();
+ 	x = (pR->right - w) / 3; x = x > 20 ? x:20;
+ 	y = (pR->bottom - h) / 3; y = y > 20 ? y:20;
++	x = DPIScaling(x);
++	y = DPIScaling(y);
+     } else {
+ 	x = (devicewidth(NULL) - w) / 3;
+ 	y = (deviceheight(NULL) - h) / 3 ;
+Index: src/library/utils/src/windows/dialogs.c
+===================================================================
+--- src/library/utils/src/windows/dialogs.c	(revision 83653)
++++ src/library/utils/src/windows/dialogs.c	(working copy)
+@@ -72,7 +72,7 @@
+     args = CDR(args);
+     pbar = R_Calloc(1, winprogressbar);
+     width = asInteger(CAR(args)); args = CDR(args);
+-    if(width == NA_INTEGER || width < 0) width = 200;
++    if(width == NA_INTEGER || width < 0) width = DPIScaling(200);
+     tmp = CAR(args); args = CDR(args);
+     if(!isString(tmp) || length(tmp) < 1 || STRING_ELT(tmp, 0) == NA_STRING)
+ 	errorcall(call, "invalid '%s' argument", "title");
+@@ -93,12 +93,12 @@
+     pbar->val = d;
+ 
+     pbar->width = width;
+-    pbar->wprog = newwindow(title, rect(0, 0, width+40, haveLabel ? 100: 80),
++    pbar->wprog = newwindow(title, rect(0, 0, width+ DPIScaling(40), haveLabel ? DPIScaling(100): DPIScaling(80)),
+ 			    Titlebar | Centered);
+     setbackground(pbar->wprog, dialog_bg());
+     if(haveLabel)
+-	pbar->lab = newlabel(label, rect(10, 15, width+20, 25), AlignCenter);
+-    pbar->pb = newprogressbar(rect(20, haveLabel ? 50 : 30, width, 20),
++	pbar->lab = newlabel(label, rect(DPIScaling(10), DPIScaling(15), width+ DPIScaling(20), DPIScaling(25)), AlignCenter);
++    pbar->pb = newprogressbar(rect(DPIScaling(20), haveLabel ? DPIScaling(50) : DPIScaling(30), width, DPIScaling(20)),
+ 			      0, width, 1, 1);
+     iv = pbar->width * (pbar->val - pbar->min)/(pbar->max - pbar->min);
+     setprogressbar(pbar->pb, iv);
+Index: src/library/utils/src/windows/widgets.c
+===================================================================
+--- src/library/utils/src/windows/widgets.c	(revision 83653)
++++ src/library/utils/src/windows/widgets.c	(working copy)
+@@ -92,7 +92,7 @@
+ 
+     fht = getSysFontSize().height;
+ 
+-    xmax = max(170, mw+60); /* allow for scrollbar */
++    xmax = max(DPIScaling(170), mw+ DPIScaling(60)); /* allow for scrollbar */
+     if(ismdi()) {
+ 	RECT *pR = RgetMDIsize();
+ 	h0 = pR->bottom;
+@@ -99,8 +99,8 @@
+     } else {
+ 	h0 = deviceheight(NULL);
+     }
+-    ymax = min(80+fht*n, h0-100); /* allow for window widgets, toolbar */
+-    ylist = ymax - 60;
++    ymax = min(DPIScaling(80)+fht*n, h0-DPIScaling(100)); /* allow for window widgets, toolbar */
++    ylist = ymax - DPIScaling(60);
+     wselect = newwindow(haveTitle ? translateChar(STRING_ELT(CADDDR(args), 0)):
+ 			(multiple ? _("Select one or more") : _("Select one")),
+ 			rect(0, 0, xmax, ymax),
+@@ -107,9 +107,9 @@
+ 			Titlebar | Centered | Modal | Floating);
+     setbackground(wselect, dialog_bg());
+     if(multiple)
+-	f_list = newmultilist(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
++	f_list = newmultilist(clist, rect(DPIScaling(10), DPIScaling(10), xmax- DPIScaling(25), ylist), NULL, finish);
+     else
+-	f_list = newlistbox(clist, rect(10, 10, xmax-25, ylist), NULL, finish);
++	f_list = newlistbox(clist, rect(DPIScaling(10), DPIScaling(10), xmax- DPIScaling(25), ylist), NULL, finish);
+     if(!isNull(preselect) && LENGTH(preselect)) {
+ 	for(i = 0; i < n; i++)
+ 	    for(j = 0; j < LENGTH(preselect); j++)
+@@ -118,8 +118,10 @@
+ 		    break;
+ 		}
+     }
+-    bFinish = newbutton(G_("OK"), rect(xmax-160, ymax-40, 70, 25), finish);
+-    bCancel = newbutton(G_("Cancel"), rect(xmax-80, ymax-40, 70, 25), cancel);
++    bFinish = newbutton(G_("OK"),rect(xmax- DPIScaling(160), ymax- DPIScaling(40),
++                                 DPIScaling(70), DPIScaling(25)), finish);
++    bCancel = newbutton(G_("Cancel"), rect(xmax- DPIScaling(80), ymax- DPIScaling(40),
++                                 DPIScaling(70), DPIScaling(25)), cancel);
+     setkeydown(wselect, key1);
+     show(wselect);
+     done = 0;
+Index: src/modules/internet/internet.c
+===================================================================
+--- src/modules/internet/internet.c	(revision 83653)
++++ src/modules/internet/internet.c	(working copy)
+@@ -350,11 +350,11 @@
+     if(meth == NA_LOGICAL)
+ 	error(_("invalid '%s' argument"), "method");
+     if (!file_URL && R_Interactive && !quiet && !pbar.wprog) {
+-	pbar.wprog = newwindow(_("Download progress"), rect(0, 0, 540, 100),
++	pbar.wprog = newwindow(_("Download progress"), rectScalingforDPI(rect(0, 0, 540, 100)),
+ 			       Titlebar | Centered);
+ 	setbackground(pbar.wprog, dialog_bg());
+-	pbar.l_url = newlabel(" ", rect(10, 15, 520, 25), AlignCenter);
+-	pbar.pb = newprogressbar(rect(20, 50, 500, 20), 0, 1024, 1024, 1);
++	pbar.l_url = newlabel(" ", rectScalingforDPI(rect(10, 15, 520, 25)), AlignCenter);
++	pbar.pb = newprogressbar(rectScalingforDPI(rect(20, 50, 500, 20)), 0, 1024, 1024, 1);
+ 	pbar.pc = 0;
+     }
+ #endif
+Index: src/modules/internet/libcurl.c
+===================================================================
+--- src/modules/internet/libcurl.c	(revision 83653)
++++ src/modules/internet/libcurl.c	(working copy)
+@@ -613,12 +613,12 @@
+ 	    if (R_Interactive) {
+ 		if (!pbar.wprog) {
+ 		    pbar.wprog = newwindow(_("Download progress"),
+-					   rect(0, 0, 540, 100),
++                rectScalingforDPI(rect(0, 0, 540, 100)),
+ 					   Titlebar | Centered);
+ 		    setbackground(pbar.wprog, dialog_bg());
+-		    pbar.l_url = newlabel(" ", rect(10, 15, 520, 25),
++		    pbar.l_url = newlabel(" ", rectScalingforDPI(rect(10, 15, 520, 25)),
+ 					  AlignCenter);
+-		    pbar.pb = newprogressbar(rect(20, 50, 500, 20),
++		    pbar.pb = newprogressbar(rectScalingforDPI(rect(20, 50, 500, 20)),
+ 					     0, 1024, 1024, 1);
+ 		    pbar.pc = 0;
+ 		}
