@@ -5,7 +5,7 @@ some r related patch I am working on. update time to time, Currently include
 
 2 High DPI patch about R on Windows, Modify graphapp and related r codes( Rgui,package,modules), SystemDPI awareness implemented. 
 
-  currently the modify  windows and dialogs included in RGui and utils package and internet module. now toolbar and toolbarbuttion  igonred (need also modify icon). 
+  currently the modify  windows and dialogs included in RGui and utils package and internet module. now toolbar and toolbarbuttion  also modify for DPI awareness. 
  
   Test on two PCs, RGui include console,editor,pagers,download, package related dialog,preference,and most important plotting windows,all seems work !!
 
