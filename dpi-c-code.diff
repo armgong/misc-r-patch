@@ -29,6 +29,28 @@ Index: src/extra/graphapp/buttons.c
  /*
   *  Ensure there is a current window, create one if there isn't.
   *  If a window is created, it is also shown on the screen.
+Index: src/extra/graphapp/gbuttons.c
+===================================================================
+--- src/extra/graphapp/gbuttons.c	(revision 83653)
++++ src/extra/graphapp/gbuttons.c	(working copy)
+@@ -70,7 +70,7 @@
+     window c = current_window;
+     if (!ismdi() || !c || (c==MDIFrame)) return NULL;
+     addto(MDIFrame);
+-    c->toolbar = newwindow("TOOLBAR", rect(0, 0, 100, height),
++    c->toolbar = newwindow("TOOLBAR", rectScalingforDPI(rect(0, 0, 100, height)),
+ 			   ChildWindow | Border);
+     if (c->toolbar) {
+ 	DWORD wcol = GetSysColor(COLOR_MENU);
+@@ -96,6 +96,7 @@
+ 		      (wcol >> 8) &  0x000000FFL,
+ 		      (wcol >> 16) &  0x000000FFL);
+     img->cmap[img->pixels[0]] = col;
++    r=rectScalingforDPI(r);
+     return newimagebutton(img, r, fn);
+ }
+ 
+
 Index: src/extra/graphapp/graphapp.h
 ===================================================================
 --- src/extra/graphapp/graphapp.h	(revision 83653)
