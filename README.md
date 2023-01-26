@@ -1,15 +1,16 @@
 # misc-r-patch
 some r related patch I am working on. update time to time, Currently include 
 
-1 Windows to IANA timezone convertion(done)
+1 Windows to IANA timezone convertion (**done**)
 
-2 High DPI patch about R on Windows, Modify graphapp and related r codes( Rgui,package,modules), SystemDPI awareness implemented. 
+2 High DPI patch about R on Windows, Modify graphapp and related r codes(**Rgui,base packages,modules**), **SystemDPI awareness implemented now**. (**done**)
 
-  Currently windows and dialogs(implemented use graphapp) included in RGui and  R base package and  modules modified for DPI awareness. also toolbar and toolbarbuttion modify for DPI awareness. 
+  Currently system high DPI implemention includes **almost all dialogs and windows in R on Windows, RGUI toolbar, plotting windows, repo related dialogs and windows, dialogs in base and utils packages and internet modules.**
  
- Test on three PCs( 120 dpi,168 dpi and 192 dpi), Rgui include console,editor,pagers,download, repo related dialogs, preference,and most important plotting windows,all seems work smooth.
+ Test on three PCs (120 dpi,168 dpi and 192 dpi), **Rgui console,editor,pagers,download, repo related dialogs, preference,and most important plotting windows,all seems work smooth**.
  
- please see the two png file in this repo.
+please see the three png file in this repo.
 
+**Please attention, PerMonitorDPI awareness may be implement use WM_DPICHANGE in future if really needed, it will take time.**
 
-3 PerMonitorDPI awareness will be implement use WM_DPICHANGE in future.
+3 to be determine
