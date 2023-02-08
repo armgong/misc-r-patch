@@ -1,6 +1,6 @@
 Index: src/extra/graphapp/buttons.c
 ===================================================================
---- src/extra/graphapp/buttons.c	(revision 83653)
+--- src/extra/graphapp/buttons.c	(revision 83776)
 +++ src/extra/graphapp/buttons.c	(working copy)
 @@ -58,6 +58,26 @@
  #define hasfocus(obj) ((obj)->state & GA_Focus)
@@ -31,7 +31,7 @@ Index: src/extra/graphapp/buttons.c
   *  If a window is created, it is also shown on the screen.
 Index: src/extra/graphapp/gbuttons.c
 ===================================================================
---- src/extra/graphapp/gbuttons.c	(revision 83653)
+--- src/extra/graphapp/gbuttons.c	(revision 83776)
 +++ src/extra/graphapp/gbuttons.c	(working copy)
 @@ -70,7 +70,7 @@
      window c = current_window;
@@ -50,10 +50,9 @@ Index: src/extra/graphapp/gbuttons.c
      return newimagebutton(img, r, fn);
  }
  
-
 Index: src/extra/graphapp/graphapp.h
 ===================================================================
---- src/extra/graphapp/graphapp.h	(revision 83653)
+--- src/extra/graphapp/graphapp.h	(revision 83776)
 +++ src/extra/graphapp/graphapp.h	(working copy)
 @@ -500,6 +500,7 @@
  #define ptinr		GA_ptinr
@@ -83,7 +82,7 @@ Index: src/extra/graphapp/graphapp.h
   */
 Index: src/gnuwin32/front-ends/RGui32.manifest
 ===================================================================
---- src/gnuwin32/front-ends/RGui32.manifest	(revision 83653)
+--- src/gnuwin32/front-ends/RGui32.manifest	(revision 83776)
 +++ src/gnuwin32/front-ends/RGui32.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
@@ -96,7 +95,7 @@ Index: src/gnuwin32/front-ends/RGui32.manifest
  <description>RGui console</description>
 Index: src/gnuwin32/front-ends/RGui64.manifest
 ===================================================================
---- src/gnuwin32/front-ends/RGui64.manifest	(revision 83653)
+--- src/gnuwin32/front-ends/RGui64.manifest	(revision 83776)
 +++ src/gnuwin32/front-ends/RGui64.manifest	(working copy)
 @@ -9,6 +9,8 @@
  <application>
@@ -109,9 +108,9 @@ Index: src/gnuwin32/front-ends/RGui64.manifest
  <description>RGui console</description>
 Index: src/gnuwin32/preferences.c
 ===================================================================
---- src/gnuwin32/preferences.c	(revision 83653)
+--- src/gnuwin32/preferences.c	(revision 83776)
 +++ src/gnuwin32/preferences.c	(working copy)
-@@ -799,19 +799,18 @@
+@@ -800,19 +800,18 @@
  static void showDialog(Gui gui)
  {
      char buf[100];
@@ -138,7 +137,7 @@ Index: src/gnuwin32/preferences.c
      if(gui->statusbar) check(statusbar);
      if(gui->MDI) {
  	check(rb_mdi); cMDI(rb_mdi);
-@@ -819,92 +818,92 @@
+@@ -820,92 +819,92 @@
  	check(rb_sdi); cSDI(rb_sdi);
      }
  
@@ -271,7 +270,7 @@ Index: src/gnuwin32/preferences.c
  	
      for (int i=0; i<numGuiColors; i++)
      	dialogColors[i] = gui->guiColors[i];
-@@ -915,11 +914,11 @@
+@@ -916,11 +915,11 @@
      samplePointsize = atoi(gettext(d_point));
      scrollStyle(f_style, 0); /* the 0 is ignored */
  
@@ -290,7 +289,7 @@ Index: src/gnuwin32/preferences.c
  
 Index: src/library/utils/src/windows/dataentry.c
 ===================================================================
---- src/library/utils/src/windows/dataentry.c	(revision 83653)
+--- src/library/utils/src/windows/dataentry.c	(revision 83776)
 +++ src/library/utils/src/windows/dataentry.c	(working copy)
 @@ -1519,15 +1519,15 @@
      popupcol = DE->colmin + col - 1;
@@ -345,7 +344,7 @@ Index: src/library/utils/src/windows/dataentry.c
  	y = (deviceheight(NULL) - h) / 3 ;
 Index: src/library/utils/src/windows/dialogs.c
 ===================================================================
---- src/library/utils/src/windows/dialogs.c	(revision 83653)
+--- src/library/utils/src/windows/dialogs.c	(revision 83776)
 +++ src/library/utils/src/windows/dialogs.c	(working copy)
 @@ -72,7 +72,7 @@
      args = CDR(args);
@@ -374,18 +373,19 @@ Index: src/library/utils/src/windows/dialogs.c
      setprogressbar(pbar->pb, iv);
 Index: src/library/utils/src/windows/widgets.c
 ===================================================================
---- src/library/utils/src/windows/widgets.c	(revision 83653)
+--- src/library/utils/src/windows/widgets.c	(revision 83776)
 +++ src/library/utils/src/windows/widgets.c	(working copy)
-@@ -92,7 +92,7 @@
+@@ -91,8 +91,7 @@
+     clist[n] = NULL;
  
      fht = getSysFontSize().height;
- 
+-
 -    xmax = max(170, mw+60); /* allow for scrollbar */
 +    xmax = max(DPIScaling(170), mw+ DPIScaling(60)); /* allow for scrollbar */
      if(ismdi()) {
  	RECT *pR = RgetMDIsize();
  	h0 = pR->bottom;
-@@ -99,8 +99,8 @@
+@@ -99,8 +98,8 @@
      } else {
  	h0 = deviceheight(NULL);
      }
@@ -396,7 +396,7 @@ Index: src/library/utils/src/windows/widgets.c
      wselect = newwindow(haveTitle ? translateChar(STRING_ELT(CADDDR(args), 0)):
  			(multiple ? _("Select one or more") : _("Select one")),
  			rect(0, 0, xmax, ymax),
-@@ -107,9 +107,9 @@
+@@ -107,9 +106,9 @@
  			Titlebar | Centered | Modal | Floating);
      setbackground(wselect, dialog_bg());
      if(multiple)
@@ -408,7 +408,7 @@ Index: src/library/utils/src/windows/widgets.c
      if(!isNull(preselect) && LENGTH(preselect)) {
  	for(i = 0; i < n; i++)
  	    for(j = 0; j < LENGTH(preselect); j++)
-@@ -118,8 +118,10 @@
+@@ -118,8 +117,10 @@
  		    break;
  		}
      }
@@ -423,7 +423,7 @@ Index: src/library/utils/src/windows/widgets.c
      done = 0;
 Index: src/modules/internet/internet.c
 ===================================================================
---- src/modules/internet/internet.c	(revision 83653)
+--- src/modules/internet/internet.c	(revision 83776)
 +++ src/modules/internet/internet.c	(working copy)
 @@ -350,11 +350,11 @@
      if(meth == NA_LOGICAL)
@@ -442,7 +442,7 @@ Index: src/modules/internet/internet.c
  #endif
 Index: src/modules/internet/libcurl.c
 ===================================================================
---- src/modules/internet/libcurl.c	(revision 83653)
+--- src/modules/internet/libcurl.c	(revision 83776)
 +++ src/modules/internet/libcurl.c	(working copy)
 @@ -613,12 +613,12 @@
  	    if (R_Interactive) {
